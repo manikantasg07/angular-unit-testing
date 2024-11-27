@@ -10,4 +10,11 @@ import { RouterOutlet } from '@angular/router';
 })
 export class AppComponent {
   title = 'angular-unit-testing';
+  subscribed=false;
+  btnText="Subscribe"
+
+  subscribe(){
+    this.subscribed=true;
+    this.btnText="Subscribed"
+  }
 }
