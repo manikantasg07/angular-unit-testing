@@ -1,7 +1,8 @@
-import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ComponentFixture, fakeAsync, flush, flushMicrotasks, TestBed, tick, waitForAsync } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 import { DebugElement } from '@angular/core';
 import { By } from '@angular/platform-browser';
+import { count, delay, of } from 'rxjs';
 
 describe('AppComponent', () => {
   // beforeEach(async () => {
@@ -78,19 +79,90 @@ describe('AppComponent', () => {
       expect(subscribeBtn.nativeElement.textContent.trim()).toBe("Subscribe");
     })
 
-    it("should render a button with text subscribed and the button should be disabled after click",()=>{
+    // it("should render a button with text subscribed and the button should be disabled after click",(done:DoneFn)=>{
+
+    //   component.subscribed=false;
+    //   component.btnText="Subscribe"
+    //   fixture.detectChanges();
+    //   let subscribeBtn = el.query(By.css(".subscribe"))
+    //   subscribeBtn.nativeElement.click();
+    //   setTimeout(()=>{
+    //     console.log("Hello");
+    //     done();
+    //   },8000)
+    //   setTimeout(()=>{
+    //     fixture.detectChanges();
+    //     subscribeBtn = el.query(By.css(".subscribe"))
+    //     expect(subscribeBtn.nativeElement.textContent.trim()).toBe("Subscribed");
+    //     expect(subscribeBtn.nativeElement.disabled).toBeTrue();
+        
+    //   },3000)
+    // })
+
+
+    it("should render a button with text subscribed and the button should be disabled after click",fakeAsync(()=>{
 
       component.subscribed=false;
       component.btnText="Subscribe"
       fixture.detectChanges();
       let subscribeBtn = el.query(By.css(".subscribe"))
       subscribeBtn.nativeElement.click();
-      fixture.detectChanges();
-      subscribeBtn = el.query(By.css(".subscribe"))
+      setTimeout(()=>{
+        console.log("Hello");
+      },8000)
+      setTimeout(()=>{
+        fixture.detectChanges();
+        subscribeBtn = el.query(By.css(".subscribe"))
+        
+      },3000)
+
+      // tick(3000);
+      flush();
+
       expect(subscribeBtn.nativeElement.textContent.trim()).toBe("Subscribed");
       expect(subscribeBtn.nativeElement.disabled).toBeTrue();
 
-    })
+      // tick(5000);
 
+    }))
 
+    it("should test the promise",fakeAsync(()=>{
+
+      let counter=0;
+
+      setTimeout(()=>{
+        counter=counter +2;
+      },2000)
+
+      setTimeout(()=>{
+        counter=counter+3;
+      },3000)
+
+      Promise.resolve().then(()=>{
+        counter=counter+1
+      })
+      
+      // flush();
+
+      flushMicrotasks();
+      expect(counter).toBe(1);      
+      tick(2000);
+      expect(counter).toBe(3);
+      tick(1000);
+      expect(counter).toBe(6);
+
+    }))
+
+    it("should test observable",fakeAsync(()=>{
+
+      let isSubscribed = false;
+      let obs = of(isSubscribed).pipe(delay(2000));
+      obs.subscribe(()=>{
+        isSubscribed=true
+      })
+      // flush();
+      tick(2000);
+      expect(isSubscribed).toBeTrue()
+
+    }))
 });
